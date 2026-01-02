@@ -1,12 +1,12 @@
-# Service Foundation
+# Anvil
 
 ## Overview
 
-Service Foundation is a framework-agnostic backend foundation for Rust services. The project provides shared infrastructure layers that are commonly required by production backend services, without introducing a new web framework, runtime, or transport abstraction.
+Anvil is a framework-agnostic backend foundation for Rust services. The project provides shared infrastructure layers that are commonly required by production backend services, without introducing a new web framework, runtime, or transport abstraction.
 
 The goal of this project is to improve consistency, reliability, and developer experience across Rust backend services by extracting non-business concerns into a stable, composable foundation.
 
-Service Foundation is designed to integrate with existing Rust web frameworks such as Axum or Actix through thin adapters, while keeping the core strictly independent of any framework.
+Anvil is designed to integrate with existing Rust web frameworks such as Axum or Actix through thin adapters, while keeping the core strictly independent of any framework.
 
 ---
 
@@ -32,7 +32,7 @@ Functionality is modular and opt-in. Consumers may adopt only the components the
 
 ## Scope
 
-Service Foundation focuses on infrastructure-level concerns that are common across backend services:
+Anvil focuses on infrastructure-level concerns that are common across backend services:
 
 * Deterministic startup lifecycle
 * Fail-fast configuration loading
@@ -48,7 +48,7 @@ The project does not implement application logic, request routing, or protocol h
 
 ```
 crates/
-  backend-core/
+  anvil-core/
     config/
     lifecycle/
     shutdown/
@@ -56,11 +56,11 @@ crates/
     health/
     observability/
 
-  backend-adapter-axum/
+  anvil-adapter-axum/
 ```
 
-* **backend-core**: Framework-agnostic infrastructure primitives
-* **backend-adapter-axum**: Thin Axum integration layer
+* **anvil-core**: Framework-agnostic infrastructure primitives
+* **anvil-adapter-axum**: Thin Axum integration layer
 
 Adapters are intentionally minimal. If an adapter grows complex, the core design should be reconsidered.
 
@@ -104,7 +104,7 @@ The Axum adapter demonstrates how health state can be exposed over HTTP without 
 
 ## Usage Model
 
-A typical service integrates Service Foundation during startup:
+A typical service integrates Anvil during startup:
 
 1. Initialize configuration
 2. Initialize observability
@@ -120,7 +120,7 @@ The foundation does not start servers or manage runtimes.
 
 ## Non-Goals
 
-Service Foundation does not:
+Anvil does not:
 
 * Define HTTP routes or middleware
 * Replace existing Rust web frameworks
