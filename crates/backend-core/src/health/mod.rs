@@ -1,3 +1,3 @@
 mod state;
 
-pub use state::HealthState;
+pub use state::{HealthState, DegradationReason};

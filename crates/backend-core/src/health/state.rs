@@ -1,12 +1,27 @@
+use std::collections::HashSet;
+use std::sync::{RwLock};
 use std::sync::atomic::{AtomicBool, Ordering};
+
+/// A structured reason explaining why the service is not ready.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct DegradationReason {
+    pub code: &'static str,
+    pub message: &'static str,
+}
+
+impl DegradationReason {
+    pub const fn new(code: &'static str, message: &'static str) -> Self {
+        Self { code, message }
+    }
+}
 
 /// Represents service health state.
 ///
 /// - Liveness: is the process alive?
-/// - Readiness: is the service ready to receive traffic?
+/// - Readiness: derived from degradation reasons
 pub struct HealthState {
     live: AtomicBool,
-    ready: AtomicBool,
+    readiness_reasons: RwLock<HashSet<DegradationReason>>,
 }
 
 impl HealthState {
@@ -14,23 +29,23 @@ impl HealthState {
     ///
     /// Services start as:
     /// - live = true
-    /// - ready = false
+    /// - ready = false (implicit: has initial degradation)
     pub fn new() -> Self {
+        let mut reasons = HashSet::new();
+        reasons.insert(DegradationReason::new(
+            "starting",
+            "service is starting",
+        ));
+
         Self {
             live: AtomicBool::new(true),
-            ready: AtomicBool::new(false),
+            readiness_reasons: RwLock::new(reasons),
         }
     }
 
-    /// Mark service as ready.
-    pub fn mark_ready(&self) {
-        self.ready.store(true, Ordering::SeqCst);
-        
-    }
-
-    /// Mark service as not ready.
-    pub fn mark_not_ready(&self) {
-        self.ready.store(false, Ordering::SeqCst);
+    /// Mark service as alive.
+    pub fn mark_alive(&self) {
+        self.live.store(true, Ordering::SeqCst);
     }
 
     /// Mark service as not live.
@@ -46,7 +61,34 @@ impl HealthState {
     }
 
     /// Is the service ready?
+    ///
+    /// Readiness is derived from the absence of degradation reasons.
     pub fn is_ready(&self) -> bool {
-        self.ready.load(Ordering::SeqCst)
+        self.readiness_reasons.read().unwrap().is_empty()
+    }
+
+    /// Add a readiness degradation reason.
+    pub fn add_degradation(&self, reason: DegradationReason) {
+        self.readiness_reasons.write().unwrap().insert(reason);
+    }
+
+    /// Remove a readiness degradation reason.
+    pub fn remove_degradation(&self, reason: &DegradationReason) {
+        self.readiness_reasons.write().unwrap().remove(reason);
+    }
+
+    /// Clear all readiness degradation reasons.
+    pub fn clear_degradations(&self) {
+        self.readiness_reasons.write().unwrap().clear();
+    }
+
+    /// Get a snapshot of current readiness degradation reasons.
+    pub fn degradation_reasons(&self) -> Vec<DegradationReason> {
+        self.readiness_reasons
+            .read()
+            .unwrap()
+            .iter()
+            .cloned()
+            .collect()
     }
 }

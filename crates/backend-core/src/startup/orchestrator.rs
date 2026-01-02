@@ -39,14 +39,13 @@ impl Startup {
     /// Fails if the lifecycle is not in a valid state.
     pub fn mark_ready(&self) -> Result<(), crate::lifecycle::LifecycleError> {
         self.lifecycle.transition(LifecycleState::Ready)?;
-        self.health.mark_ready();
+        self.health.clear_degradations();
         Ok(())
     }
 
     /// Execute a full shutdown sequence.
     pub async fn shutdown_now(self) -> Result<(), crate::lifecycle::LifecycleError> {
         self.lifecycle.transition(LifecycleState::ShuttingDown)?;
-        self.health.mark_not_ready();
         self.health.mark_dead();
 
         self.shutdown_coordinator.shutdown().await;
