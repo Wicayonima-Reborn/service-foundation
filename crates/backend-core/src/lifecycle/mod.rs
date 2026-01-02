@@ -2,7 +2,7 @@ mod state;
 
 use std::sync::atomic::{AtomicU8, Ordering};
 
-pub use state::LifecycleState;
+pub use state::{LifecycleError, LifecycleState};
 
 pub struct Lifecycle {
     state: AtomicU8,
@@ -25,7 +25,17 @@ impl Lifecycle {
         }
     }
 
-    pub fn transition(&self, next: LifecycleState) {
+    pub fn transition(&self, next: LifecycleState) -> Result<(), LifecycleError> {
+        let current = self.state();
+
+        if !current.can_transition_to(next) {
+            return Err(LifecycleError::InvalidTransition {
+                from: current,
+                to: next,
+            });
+        }
+
         self.state.store(next as u8, Ordering::SeqCst);
+        Ok(())
     }
 }
