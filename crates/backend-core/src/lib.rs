@@ -1,3 +1,7 @@
+/// Execute a minimal shutdown flow using the provided lifecycle and coordinator.
+///
+/// This function performs no signal handling and does not
+/// assume any runtime ownership.
 pub mod config;
 pub mod lifecycle;
 pub mod shutdown;
