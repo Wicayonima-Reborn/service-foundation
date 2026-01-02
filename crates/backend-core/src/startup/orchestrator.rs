@@ -5,8 +5,8 @@ use std::sync::Arc;
 
 /// Core startup orchestrator.
 ///
-/// Coordinates service startup and shutdown lifecycle
-/// without owning any runtime or framework concerns.
+/// Coordinates lifecycle, health, and shutdown concerns
+/// without owning any runtime or framework.
 pub struct Startup {
     lifecycle: Lifecycle,
     shutdown_coordinator: ShutdownCoordinator,
@@ -34,14 +34,16 @@ impl Startup {
         &self.shutdown_coordinator
     }
 
-    /// Mark service as ready.
+    /// Mark the service as ready.
+    ///
+    /// Fails if the lifecycle is not in a valid state.
     pub fn mark_ready(&self) -> Result<(), crate::lifecycle::LifecycleError> {
         self.lifecycle.transition(LifecycleState::Ready)?;
         self.health.mark_ready();
         Ok(())
     }
 
-    /// Execute shutdown flow.
+    /// Execute a full shutdown sequence.
     pub async fn shutdown_now(self) -> Result<(), crate::lifecycle::LifecycleError> {
         self.lifecycle.transition(LifecycleState::ShuttingDown)?;
         self.health.mark_not_ready();

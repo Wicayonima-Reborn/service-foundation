@@ -4,17 +4,23 @@ use std::sync::atomic::{AtomicU8, Ordering};
 
 pub use state::{LifecycleError, LifecycleState};
 
+/// Thread-safe lifecycle state tracker with strict transition validation.
+///
+/// This type does not own any runtime, threading model,
+/// or transport concerns.
 pub struct Lifecycle {
     state: AtomicU8,
 }
 
 impl Lifecycle {
+    /// Create a new lifecycle initialized to `Initializing`.
     pub fn new() -> Self {
         Self {
             state: AtomicU8::new(LifecycleState::Initializing as u8),
         }
     }
 
+    /// Get the current lifecycle state.
     pub fn state(&self) -> LifecycleState {
         match self.state.load(Ordering::SeqCst) {
             0 => LifecycleState::Initializing,
@@ -25,6 +31,9 @@ impl Lifecycle {
         }
     }
 
+    /// Transition to the next lifecycle state.
+    ///
+    /// Returns an error if the transition is invalid.
     pub fn transition(&self, next: LifecycleState) -> Result<(), LifecycleError> {
         let current = self.state();
 
