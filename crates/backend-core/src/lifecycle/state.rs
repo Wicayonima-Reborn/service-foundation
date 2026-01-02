@@ -40,3 +40,10 @@ impl LifecycleState {
         )
     }
 }
+
+// Lifecycle transition event
+#[derive(Debug, Clone, Copy)]
+pub struct LifecycleEvent {
+    pub from: LifecycleState,
+    pub to: LifecycleState,
+}

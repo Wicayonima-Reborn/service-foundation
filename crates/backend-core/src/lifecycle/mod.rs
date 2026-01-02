@@ -1,15 +1,20 @@
 mod state;
 
-use std::sync::atomic::{AtomicU8, Ordering};
+use std::sync::{
+    atomic::{AtomicU8, Ordering},
+    Arc, RwLock,
+};
 
-pub use state::{LifecycleError, LifecycleState};
+pub use state::{LifecycleError, LifecycleEvent, LifecycleState};
+
+/// Observer invoked after a successful lifecycle transition.
+pub type LifecycleObserver =
+    Arc<dyn Fn(LifecycleEvent) + Send + Sync + 'static>;
 
 /// Thread-safe lifecycle state tracker with strict transition validation.
-///
-/// This type does not own any runtime, threading model,
-/// or transport concerns.
 pub struct Lifecycle {
     state: AtomicU8,
+    observers: RwLock<Vec<LifecycleObserver>>,
 }
 
 impl Lifecycle {
@@ -17,7 +22,15 @@ impl Lifecycle {
     pub fn new() -> Self {
         Self {
             state: AtomicU8::new(LifecycleState::Initializing as u8),
+            observers: RwLock::new(Vec::new()),
         }
+    }
+
+    /// Register a lifecycle observer.
+    ///
+    /// Observers are invoked after a successful state transition.
+    pub fn register_observer(&self, observer: LifecycleObserver) {
+        self.observers.write().unwrap().push(observer);
     }
 
     /// Get the current lifecycle state.
@@ -45,6 +58,16 @@ impl Lifecycle {
         }
 
         self.state.store(next as u8, Ordering::SeqCst);
+
+        let event = LifecycleEvent {
+            from: current,
+            to: next,
+        };
+
+        for observer in self.observers.read().unwrap().iter() {
+            observer(event);
+        }
+
         Ok(())
     }
 }
