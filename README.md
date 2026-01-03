@@ -118,6 +118,85 @@ The foundation does not start servers or manage runtimes.
 
 ---
 
+## Quick Start (Minimal Example)
+
+Below is a minimal example showing how to integrate **anvil-core** with an Axum service using the Axum adapter.
+
+### Cargo.toml
+
+```toml
+[dependencies]
+anvil-core = "0.1"
+anvil-adapter-axum = "0.1"
+axum = "0.7"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tracing-subscriber = "0.3"
+```
+
+### main.rs
+
+```rust
+use std::net::SocketAddr;
+use std::time::Duration;
+
+use axum::Router;
+use anvil_core::startup::Startup;
+use anvil_core::lifecycle::LifecycleState;
+use anvil_core::health::DegradationReason;
+
+#[tokio::main]
+async fn main() {
+    // Initialize observability (explicit, opt-in)
+    tracing_subscriber::fmt::init();
+
+    // Create startup orchestrator
+    let startup = Startup::new();
+
+    // Example: mark service as not ready until a dependency is available
+    startup.health().add_degradation(
+        DegradationReason::new("db_unavailable", "database not connected"),
+    );
+
+    // Build Axum router from adapter
+    let app = anvil_adapter_axum::health_routes(startup.health());
+
+    // Simulate startup phases
+    tokio::spawn({
+        let startup = startup;
+        async move {
+            startup
+                .lifecycle()
+                .transition(LifecycleState::Starting)
+                .expect("valid lifecycle transition");
+
+            tokio::time::sleep(Duration::from_secs(3)).await;
+
+            startup
+                .mark_ready()
+                .expect("service should be able to enter Ready state");
+        }
+    });
+
+    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+
+    axum::serve(
+        tokio::net::TcpListener::bind(addr).await.unwrap(),
+        app,
+    )
+    .await
+    .unwrap();
+}
+```
+
+This example demonstrates:
+
+* Explicit lifecycle transitions
+* Health readiness management with degradation reasons
+* Framework integration via a thin adapter
+* No framework or runtime ownership inside the core
+
+---
+
 ## Non-Goals
 
 Anvil does not:
