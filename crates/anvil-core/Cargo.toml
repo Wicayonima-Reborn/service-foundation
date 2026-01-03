@@ -3,6 +3,14 @@ name = "anvil-core"
 version = "0.1.0"
 edition = "2024"
 
+description = "Framework-agnostic infrastructure foundation for Rust backend services"
+license = "Apache-2.0"
+repository = "https://github.com/Wicayonima-Reborn/anvil"
+readme = "../../README.md"
+
+keywords = ["backend", "infrastructure", "lifecycle", "health", "shutdown"]
+categories = ["web-programming", "development-tools"]
+
 [dependencies]
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

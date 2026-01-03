@@ -3,6 +3,14 @@ name = "anvil-adapter-axum"
 version = "0.1.0"
 edition = "2024"
 
+description = "Axum adapter for the anvil-core infrastructure foundation"
+license = "Apache-2.0"
+repository = "https://github.com/Wicayonima-Reborn/anvil"
+readme = "../../README.md"
+
+keywords = ["axum", "backend", "health", "lifecycle"]
+categories = ["web-programming"]
+
 [dependencies]
 axum = "0.7"
 anvil-core = { path = "../anvil-core", features = ["tokio"] }
