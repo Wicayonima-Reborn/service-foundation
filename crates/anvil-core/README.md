@@ -91,4 +91,9 @@ Use `anvil-core` when you want:
 
 ---
 
-See the root repository README for a full end-to-end example.
+## Full Example
+
+A complete end-to-end example, including framework integration and shutdown flow,
+is available in the repository root README:
+
+👉 https://github.com/Wicayonima-Reborn/anvil#readme

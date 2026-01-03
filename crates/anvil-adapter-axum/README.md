@@ -76,4 +76,9 @@ Use this crate when:
 
 ---
 
-See the root repository README for a complete example with startup, lifecycle, and shutdown.
+## Full Example
+
+A complete end-to-end example, including framework integration and shutdown flow,
+is available in the repository root README:
+
+👉 https://github.com/Wicayonima-Reborn/anvil#readme
